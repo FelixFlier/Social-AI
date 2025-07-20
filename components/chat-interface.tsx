@@ -7,15 +7,24 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Send, Bot, User, Plus, Calendar, RefreshCw, CheckCircle } from "lucide-react"
+import { StrategyCard } from "./ai-message-components/strategy-card"
+import { TimelineVisualization } from "./ai-message-components/timeline-visualization"
+import { PlatformRecommendationChart } from "./ai-message-components/platform-recommendation-chart"
+import InteractiveInputBar from "./interactive-input-bar"
+import { Send, Bot, User, Plus, Calendar, RefreshCw, CheckCircle, Copy, MoreVertical } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 interface Message {
   id: string
   type: "ai" | "user"
   content: string
   timestamp: Date
+  isTyping?: boolean
+  attachments?: File[]
+  component?: 'StrategyCard' | 'TimelineVisualization' | 'PlatformRecommendationChart'
+  componentProps?: any
   actions?: Array<{
-    label: string
+    label:string
     icon: React.ReactNode
     variant: "default" | "outline" | "secondary"
   }>
@@ -40,10 +49,8 @@ const initialMessages: Message[] = [
   },
 ]
 
-export function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>(initialMessages)
+export function ChatInterface({ messages, onSendMessage, isTyping, startNewChat }: { messages: Message[], onSendMessage: (msg: string) => void, isTyping: boolean, startNewChat: () => void }) {
   const [input, setInput] = useState("")
-  const [isTyping, setIsTyping] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -62,34 +69,8 @@ export function ChatInterface() {
 
   const handleSend = async () => {
     if (!input.trim()) return
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: "user",
-      content: input,
-      timestamp: new Date(),
-    }
-
-    setMessages((prev) => [...prev, userMessage])
+    onSendMessage(input)
     setInput("")
-    setIsTyping(true)
-
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        type: "ai",
-        content: generateAIResponse(input),
-        timestamp: new Date(),
-        actions: [
-          { label: "Apply This Strategy", icon: <CheckCircle className="h-4 w-4" />, variant: "default" },
-          { label: "View Calendar", icon: <Calendar className="h-4 w-4" />, variant: "outline" },
-          { label: "Generate Alternative", icon: <RefreshCw className="h-4 w-4" />, variant: "secondary" },
-        ],
-      }
-      setMessages((prev) => [...prev, aiResponse])
-      setIsTyping(false)
-    }, 2000)
   }
 
   const generateAIResponse = (userInput: string): string => {
@@ -192,13 +173,31 @@ Let me know more about your specific goals, target audience, and current challen
                 </div>
               )}
 
-              <div className={`max-w-[80%] ${message.type === "user" ? "order-first" : ""}`}>
+              <div className={`group relative max-w-[80%] ${message.type === "user" ? "order-first" : ""}`}>
                 <div
                   className={`p-4 rounded-2xl ${
                     message.type === "ai" ? "bg-muted/50 text-foreground" : "bg-gradient-primary text-white ml-auto"
                   }`}
                 >
                   <div className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</div>
+                  {message.component === 'StrategyCard' && <StrategyCard {...message.componentProps} />}
+                  {message.component === 'TimelineVisualization' && <TimelineVisualization {...message.componentProps} />}
+                  {message.component === 'PlatformRecommendationChart' && <PlatformRecommendationChart {...message.componentProps} />}
+                </div>
+
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-6 w-6">
+                                <MoreVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(message.content)}>
+                                <Copy className="mr-2 h-4 w-4" /> Copy
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
 
                 {message.actions && (
@@ -269,27 +268,7 @@ Let me know more about your specific goals, target audience, and current challen
       </div>
 
       {/* Input Area */}
-      <div className="p-6 border-t border-border/50">
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <Textarea
-              ref={textareaRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask me anything about your marketing strategy..."
-              className="min-h-[60px] max-h-32 bg-muted/30 border-0 focus-visible:ring-1 focus-visible:ring-primary resize-none"
-            />
-          </div>
-          <Button
-            onClick={handleSend}
-            disabled={!input.trim() || isTyping}
-            className="gradient-primary text-white h-[60px] px-6"
-          >
-            <Send className="h-5 w-5" />
-          </Button>
-        </div>
-      </div>
+      <InteractiveInputBar onSendMessage={handleSend} isTyping={isTyping} />
     </div>
   )
 }

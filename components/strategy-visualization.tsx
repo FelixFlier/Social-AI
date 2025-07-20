@@ -80,8 +80,29 @@ const previousStrategies = [
   },
 ]
 
-export function StrategyVisualization() {
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
+export function StrategyVisualization({ strategy }: { strategy: any }) {
   const [expandedStrategies, setExpandedStrategies] = useState(false)
+
+  if (!strategy) {
+    return (
+        <div className="space-y-6">
+            <Card className="glass-card">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5 text-primary" />📊 Your Strategy Map
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground">Your strategy will be visualized here.</p>
+                </CardContent>
+            </Card>
+        </div>
+    )
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -211,63 +232,44 @@ export function StrategyVisualization() {
         </CardContent>
       </Card>
 
-      {/* Previous Strategies */}
+      {/* Platform Distribution */}
       <Card className="glass-card">
-        <Collapsible open={expandedStrategies} onOpenChange={setExpandedStrategies}>
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-accent" />📁 Previous Strategies
-                </div>
-                <ChevronDown className={`h-4 w-4 transition-transform ${expandedStrategies ? "rotate-180" : ""}`} />
-              </CardTitle>
-            </CardHeader>
-          </CollapsibleTrigger>
-
-          <CollapsibleContent>
-            <CardContent className="space-y-4">
-              {previousStrategies.map((strategy) => (
-                <div
-                  key={strategy.id}
-                  className="p-4 rounded-lg border border-border/50 hover:bg-muted/30 transition-colors"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h4 className="font-semibold text-sm">{strategy.name}</h4>
-                      <p className="text-xs text-muted-foreground">{strategy.period}</p>
-                    </div>
-                    <Badge className="bg-success/10 text-success">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Completed
-                    </Badge>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4 text-xs">
-                    <div>
-                      <p className="text-muted-foreground">Reach</p>
-                      <p className="font-semibold">{strategy.metrics.reach}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Engagement</p>
-                      <p className="font-semibold text-success">{strategy.metrics.engagement}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Conversions</p>
-                      <p className="font-semibold">{strategy.metrics.conversions}</p>
-                    </div>
-                  </div>
-
-                  <Button variant="outline" size="sm" className="w-full mt-3 bg-transparent">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    Reuse Strategy
-                  </Button>
-                </div>
-              ))}
-            </CardContent>
-          </CollapsibleContent>
-        </Collapsible>
+        <CardHeader>
+          <CardTitle>Platform Distribution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={200}>
+            <PieChart>
+              <Pie data={Object.entries(strategy.platforms).map(([name, value]) => ({ name, value }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
+                {Object.entries(strategy.platforms).map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </CardContent>
       </Card>
+
+      {/* Content Theme Matrix */}
+      <Card className="glass-card">
+          <CardHeader>
+              <CardTitle>Content Theme Matrix</CardTitle>
+          </CardHeader>
+          <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={strategy.themes}>
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="value" fill="#8884d8" />
+                  </BarChart>
+              </ResponsiveContainer>
+          </CardContent>
+      </Card>
+
+      <Button variant="outline" className="w-full">
+        <FileDown className="mr-2 h-4 w-4" />
+        Export as PDF
+      </Button>
     </div>
   )
 }
