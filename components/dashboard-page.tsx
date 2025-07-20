@@ -1,52 +1,119 @@
 "use client"
 
+import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp, Users, Calendar, Zap, Plus, BarChart3, Bot, Video, Sparkles } from "lucide-react"
+import { useQuery } from "@tanstack/react-query"
+import { useDashboardStore } from "@/lib/store"
+import UpcomingPostsPreview from "./upcoming-posts-preview"
+import RecentActivityFeed from "./recent-activity-feed"
+import QuickActionCard from "./quick-action-card"
+import PerformanceCard from "./performance-card"
 
-const stats = [
-  {
-    title: "Total Reach",
-    value: "2.4M",
-    change: "+12.5%",
-    changeType: "positive" as const,
-    icon: TrendingUp,
-    description: "Across all platforms",
-    color: "text-primary",
-    bgColor: "bg-primary/10",
-  },
-  {
-    title: "Engagement Rate",
-    value: "8.2%",
-    change: "+2.1%",
-    changeType: "positive" as const,
-    icon: Users,
-    description: "Average engagement",
-    color: "text-secondary",
-    bgColor: "bg-secondary/10",
-  },
-  {
-    title: "Scheduled Posts",
-    value: "47",
-    change: "This week",
-    changeType: "neutral" as const,
-    icon: Calendar,
-    description: "Ready to publish",
-    color: "text-accent",
-    bgColor: "bg-accent/10",
-  },
-  {
-    title: "AI Credits",
-    value: "1,250",
-    change: "850 used",
-    changeType: "neutral" as const,
-    icon: Zap,
-    description: "Content generation",
-    color: "text-warning",
-    bgColor: "bg-warning/10",
-  },
-]
+// Mock data fetching functions
+const fetchMetrics = async () => {
+  await new Promise(resolve => setTimeout(resolve, 500))
+  const generateChartData = () => Array.from({ length: 7 }, (_, i) => ({ name: `Day ${i + 1}`, value: Math.floor(Math.random() * 1000) + 200 }))
+  return [
+    {
+      title: "Total Reach",
+      value: "2.4M",
+      change: "+12.5%",
+      changeType: "positive" as const,
+      icon: TrendingUp,
+      description: "Across all platforms",
+      color: "text-blue-500",
+      bgColor: "bg-blue-100",
+      gradient: "from-blue-500 to-purple-500",
+      data: generateChartData(),
+    },
+    {
+      title: "Engagement Rate",
+      value: "8.2%",
+      change: "+2.1%",
+      changeType: "positive" as const,
+      icon: Users,
+      description: "Average engagement",
+      color: "text-green-500",
+      bgColor: "bg-green-100",
+      gradient: "from-green-500 to-teal-500",
+      data: generateChartData(),
+    },
+    {
+      title: "Scheduled Posts",
+      value: "47",
+      change: "This week",
+      changeType: "neutral" as const,
+      icon: Calendar,
+      description: "Ready to publish",
+      color: "text-orange-500",
+      bgColor: "bg-orange-100",
+      gradient: "from-orange-500 to-red-500",
+      data: generateChartData(),
+    },
+    {
+      title: "AI Credits",
+      value: "1,250",
+      change: "850 used",
+      changeType: "neutral" as const,
+      icon: Zap,
+      description: "Content generation",
+      color: "text-indigo-500",
+      bgColor: "bg-indigo-100",
+      gradient: "from-indigo-500 to-violet-500",
+      data: generateChartData(),
+    },
+  ]
+}
+
+const fetchActivities = async () => {
+  await new Promise(resolve => setTimeout(resolve, 500))
+  return [
+    {
+      id: '1',
+      type: 'post_published',
+      title: "Instagram post published",
+      description: "Behind the scenes video",
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      platform: 'instagram',
+      metrics: { likes: 1200, comments: 89, shares: 45 },
+      status: 'success',
+    },
+    {
+      id: '2',
+      type: 'campaign_started',
+      title: "LinkedIn campaign started",
+      description: "Product launch announcement",
+      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
+      platform: 'linkedin',
+      metrics: { likes: 15600, comments: 234, shares: 89 },
+      status: 'success',
+    },
+    {
+      id: '3',
+      type: 'ai_strategy_generated',
+      title: "AI content generated",
+      description: "5 posts for next week",
+      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
+      status: 'success',
+    },
+  ]
+}
+
+const fetchUpcomingPosts = async () => {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    return [
+        { id: '1', platform: 'instagram', content: 'New product launch!', scheduledTime: new Date(Date.now() + 1 * 60 * 60 * 1000) },
+        { id: '2', platform: 'twitter', content: 'Join our webinar tomorrow.', scheduledTime: new Date(Date.now() + 2 * 60 * 60 * 1000) },
+        { id: '3', platform: 'linkedin', content: 'Check out our new blog post.', scheduledTime: new Date(Date.now() + 3 * 60 * 60 * 1000) },
+        { id: '4', platform: 'facebook', content: 'Our weekly Q&A is live!', scheduledTime: new Date(Date.now() + 4 * 60 * 60 * 1000) },
+        { id: '5', platform: 'instagram', content: 'Behind the scenes.', scheduledTime: new Date(Date.now() + 5 * 60 * 60 * 1000) },
+        { id: '6', platform: 'twitter', content: 'A tip for our followers.', scheduledTime: new Date(Date.now() + 6 * 60 * 60 * 1000) },
+    ]
+}
+
 
 const quickActions = [
   {
@@ -79,44 +146,24 @@ const quickActions = [
   },
 ]
 
-const recentActivity = [
-  {
-    id: 1,
-    type: "post",
-    title: "Instagram post published",
-    description: "Behind the scenes video",
-    time: "2 hours ago",
-    metrics: { likes: "1.2K", comments: "89", shares: "45" },
-    platform: "Instagram",
-    status: "published",
-  },
-  {
-    id: 2,
-    type: "campaign",
-    title: "LinkedIn campaign started",
-    description: "Product launch announcement",
-    time: "4 hours ago",
-    metrics: { reach: "15.6K", engagement: "8.9%", clicks: "234" },
-    platform: "LinkedIn",
-    status: "active",
-  },
-  {
-    id: 3,
-    type: "ai",
-    title: "AI content generated",
-    description: "5 posts for next week",
-    time: "6 hours ago",
-    metrics: { posts: "5", platforms: "3", scheduled: "12" },
-    platform: "AI",
-    status: "ready",
-  },
-]
-
 interface DashboardPageProps {
   onPageChange: (page: string) => void
 }
 
 export function DashboardPage({ onPageChange }: DashboardPageProps) {
+  const { metrics, activities, upcomingPosts, updateMetrics, setActivities, setUpcomingPosts } = useDashboardStore()
+  const userPlan = "Pro" // "Free", "Pro", "Agency"
+
+  const { isLoading } = useQuery({
+    queryKey: ['dashboardData'],
+    queryFn: () => Promise.all([fetchMetrics(), fetchActivities(), fetchUpcomingPosts()]),
+    onSuccess: ([metricsData, activitiesData, postsData]) => {
+      updateMetrics(metricsData)
+      setActivities(activitiesData)
+      setUpcomingPosts(postsData)
+    },
+  })
+
   return (
     <div className="space-y-12">
       {/* Welcome Section */}
@@ -127,71 +174,62 @@ export function DashboardPage({ onPageChange }: DashboardPageProps) {
 
       {/* KPI Cards */}
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 mb-12">
-        {stats.map((stat, index) => (
-          <Card
-            key={stat.title}
-            className="glass-card hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer group"
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-lg font-semibold text-gray-700">{stat.title}</CardTitle>
-              <div className={`p-3 rounded-xl ${stat.bgColor} group-hover:scale-110 transition-transform duration-300`}>
-                <stat.icon className={`h-8 w-8 ${stat.color}`} />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div>
-              <div className="flex items-center gap-2">
-                <Badge
-                  variant={stat.changeType === "positive" ? "default" : "secondary"}
-                  className={
-                    stat.changeType === "positive"
-                      ? "bg-success/10 text-success hover:bg-success/20"
-                      : "bg-muted text-muted-foreground"
-                  }
-                >
-                  {stat.change}
-                </Badge>
-                <p className="text-sm text-gray-500">{stat.description}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        {(isLoading || !metrics) ?
+          Array.from({ length: 4 }).map((_, index) => <Card key={index}><CardHeader><div className="h-8 bg-gray-200 rounded w-3/4" /></CardHeader><CardContent><div className="h-12 bg-gray-200 rounded w-1/2" /><div className="h-6 bg-gray-200 rounded w-full mt-2" /></CardContent></Card>) :
+          metrics.map((stat: any) => (
+            <PerformanceCard
+              key={stat.title}
+              title={stat.title}
+              value={stat.value}
+              change={stat.change}
+              changeType={stat.changeType}
+              icon={stat.icon}
+              description={stat.description}
+              color={stat.color}
+              bgColor={stat.bgColor}
+              gradient={stat.gradient}
+              data={stat.data}
+            />
+          ))}
       </div>
 
       {/* Quick Actions */}
       <div className="mb-12">
         <h2 className="text-2xl font-semibold text-gray-800 mb-8">Quick Actions</h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {quickActions.map((action, index) => (
-            <Card
+          {quickActions.map((action) => (
+            <QuickActionCard
               key={action.title}
-              className="glass-card hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer group"
-              onClick={() => onPageChange(action.action)}
-            >
-              <CardContent className="p-8 text-center">
-                <div
-                  className={`w-16 h-16 rounded-2xl ${action.color} flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}
-                >
-                  <action.icon className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{action.title}</h3>
-                <p className="text-gray-600">{action.description}</p>
-              </CardContent>
-            </Card>
+              title={action.title}
+              description={action.description}
+              icon={action.icon}
+              color={action.color}
+              action={async () => {
+                // simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1000))
+                if (action.action === 'ai-strategy' && userPlan !== 'Agency') {
+                  return false
+                }
+                onPageChange(action.action)
+                return true
+              }}
+              userPlan={userPlan}
+              requiredPlan={action.action === 'ai-strategy' ? 'Agency' : undefined}
+            />
           ))}
         </div>
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid gap-8 lg:grid-cols-3">
-        {/* Performance Overview */}
-        <div className="lg:col-span-2">
+      <div className="grid gap-8 lg:grid-cols-5">
+        {/* Main Content */}
+        <div className="lg:col-span-3 space-y-8">
           <Card className="glass-card">
             <CardHeader className="pb-6">
               <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
                 <BarChart3 className="h-6 w-6 text-primary" />
                 Performance Overview
-              </CardTitle>
+              </Title>
             </CardHeader>
             <CardContent className="p-10">
               <div className="h-80 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl flex items-center justify-center">
@@ -205,10 +243,11 @@ export function DashboardPage({ onPageChange }: DashboardPageProps) {
               </div>
             </CardContent>
           </Card>
+          <UpcomingPostsPreview initialPosts={upcomingPosts} />
         </div>
 
         {/* Right Sidebar */}
-        <div className="space-y-8">
+        <div className="lg:col-span-2 space-y-8">
           {/* AI Insights */}
           <Card className="glass-card">
             <CardHeader>
@@ -253,44 +292,7 @@ export function DashboardPage({ onPageChange }: DashboardPageProps) {
           </Card>
 
           {/* Recent Activity */}
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-800">Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-start gap-3 p-3 rounded-xl hover:bg-muted/30 transition-colors"
-                >
-                  <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-sm font-semibold">
-                      {activity.platform === "Instagram" ? "IG" : activity.platform === "LinkedIn" ? "LI" : "AI"}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-gray-900 text-sm">{activity.title}</h4>
-                    <p className="text-xs text-gray-600 mb-2">{activity.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-400">{activity.time}</span>
-                      <Badge
-                        variant="outline"
-                        className={
-                          activity.status === "published"
-                            ? "text-success border-success"
-                            : activity.status === "active"
-                              ? "text-primary border-primary"
-                              : "text-warning border-warning"
-                        }
-                      >
-                        {activity.status}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          <RecentActivityFeed initialActivities={activities} />
         </div>
       </div>
     </div>

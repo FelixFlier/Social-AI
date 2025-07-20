@@ -2,6 +2,7 @@ import type React from "react"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import ClientLayout from "./client-layout"
+import QueryProvider from "@/components/query-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -13,7 +14,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-white`}>
-        <ClientLayout>{children}</ClientLayout>
+        <QueryProvider>
+          <ClientLayout>{children}</ClientLayout>
+        </QueryProvider>
       </body>
     </html>
   )
