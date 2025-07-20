@@ -5,6 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { FloatingNavigation } from "@/components/floating-navigation"
 import { MobileBottomNavigation } from "@/components/mobile-bottom-navigation"
+import PWAInstallBanner from "@/components/pwa-install-banner"
 
 export default function ClientLayout({
   children,
@@ -30,6 +31,7 @@ export default function ClientLayout({
         </div>
       </main>
       <MobileBottomNavigation activeItem={currentPage} onPageChange={handlePageChange} />
+      <PWAInstallBanner />
     </>
   )
 }

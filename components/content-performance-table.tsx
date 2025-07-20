@@ -8,6 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import VirtualizedPostList from "./virtualized-post-list"
+import { useMediaQuery } from "@/hooks/use-media-query"
+import MobileImageOptimization from "./mobile-image-optimization"
 import { MoreHorizontal } from "lucide-react"
 import PostDetailModal from "./post-detail-modal"
 
@@ -22,6 +25,7 @@ const ContentPerformanceTable = () => {
     const [searchTerm, setSearchTerm] = useState("")
     const [sortBy, setSortBy] = useState("engagement")
     const [selectedPost, setSelectedPost] = useState<any>(null)
+    const isMobile = useMediaQuery("(max-width: 768px)")
 
     const filteredPosts = topPosts.filter(post => post.title.toLowerCase().includes(searchTerm.toLowerCase()))
 
@@ -58,59 +62,63 @@ const ContentPerformanceTable = () => {
             </div>
         </CardHeader>
         <CardContent>
-            <div className="rounded-md border">
-            <Table>
-                <TableHeader>
-                <TableRow>
-                    <TableHead>Post</TableHead>
-                    <TableHead>Platform</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Reach</TableHead>
-                    <TableHead>Engagement</TableHead>
-                    <TableHead>CTR</TableHead>
-                    <TableHead>Actions</TableHead>
-                </TableRow>
-                </TableHeader>
-                <TableBody>
-                {sortedPosts.map(post => (
-                    <TableRow key={post.id}>
-                    <TableCell>
-                        <div className="flex items-center gap-3">
-                        <img src={post.image} className="w-10 h-10 rounded object-cover" />
-                        <div>
-                            <p className="font-medium truncate max-w-xs">{post.title}</p>
-                            <p className="text-sm text-gray-500">{post.type}</p>
-                        </div>
-                        </div>
-                    </TableCell>
-                    <TableCell>
-                        <Badge variant="outline">
-                        {post.platform}
-                        </Badge>
-                    </TableCell>
-                    <TableCell>{post.date}</TableCell>
-                    <TableCell>{post.reach.toLocaleString()}</TableCell>
-                    <TableCell className="text-green-600">{post.engagement}%</TableCell>
-                    <TableCell>{post.ctr}%</TableCell>
-                    <TableCell>
-                        <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => setSelectedPost(post)}>View Details</DropdownMenuItem>
-                            <DropdownMenuItem>Duplicate Post</DropdownMenuItem>
-                            <DropdownMenuItem>Download Report</DropdownMenuItem>
-                        </DropdownMenuContent>
-                        </DropdownMenu>
-                    </TableCell>
+            {isMobile ? (
+                <VirtualizedPostList posts={sortedPosts} />
+            ) : (
+                <div className="rounded-md border">
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>Post</TableHead>
+                        <TableHead>Platform</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Reach</TableHead>
+                        <TableHead>Engagement</TableHead>
+                        <TableHead>CTR</TableHead>
+                        <TableHead>Actions</TableHead>
                     </TableRow>
-                ))}
-                </TableBody>
-            </Table>
-            </div>
+                    </TableHeader>
+                    <TableBody>
+                    {sortedPosts.map(post => (
+                        <TableRow key={post.id}>
+                        <TableCell>
+                            <div className="flex items-center gap-3">
+                            <MobileImageOptimization src={post.image} alt={post.title} className="w-10 h-10 rounded object-cover" />
+                            <div>
+                                <p className="font-medium truncate max-w-xs">{post.title}</p>
+                                <p className="text-sm text-gray-500">{post.type}</p>
+                            </div>
+                            </div>
+                        </TableCell>
+                        <TableCell>
+                            <Badge variant="outline">
+                            {post.platform}
+                            </Badge>
+                        </TableCell>
+                        <TableCell>{post.date}</TableCell>
+                        <TableCell>{post.reach.toLocaleString()}</TableCell>
+                        <TableCell className="text-green-600">{post.engagement}%</TableCell>
+                        <TableCell>{post.ctr}%</TableCell>
+                        <TableCell>
+                            <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem onClick={() => setSelectedPost(post)}>View Details</DropdownMenuItem>
+                                <DropdownMenuItem>Duplicate Post</DropdownMenuItem>
+                                <DropdownMenuItem>Download Report</DropdownMenuItem>
+                            </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TableCell>
+                        </TableRow>
+                    ))}
+                    </TableBody>
+                </Table>
+                </div>
+            )}
             <PostDetailModal post={selectedPost} open={!!selectedPost} onOpenChange={() => setSelectedPost(null)} />
         </CardContent>
         </Card>

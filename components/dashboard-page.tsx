@@ -10,7 +10,10 @@ import { useDashboardStore } from "@/lib/store"
 import UpcomingPostsPreview from "./upcoming-posts-preview"
 import RecentActivityFeed from "./recent-activity-feed"
 import QuickActionCard from "./quick-action-card"
+import MobileDashboardCard from "./mobile-dashboard-card"
+import MobileQuickActions from "./mobile-quick-actions"
 import PerformanceCard from "./performance-card"
+import { useMediaQuery } from "@/hooks/use-media-query"
 
 // Mock data fetching functions
 const fetchMetrics = async () => {
@@ -153,6 +156,7 @@ interface DashboardPageProps {
 export function DashboardPage({ onPageChange }: DashboardPageProps) {
   const { metrics, activities, upcomingPosts, updateMetrics, setActivities, setUpcomingPosts } = useDashboardStore()
   const userPlan = "Pro" // "Free", "Pro", "Agency"
+  const isMobile = useMediaQuery("(max-width: 768px)")
 
   const { isLoading } = useQuery({
     queryKey: ['dashboardData'],
@@ -173,9 +177,11 @@ export function DashboardPage({ onPageChange }: DashboardPageProps) {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 mb-12">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-12">
         {(isLoading || !metrics) ?
           Array.from({ length: 4 }).map((_, index) => <Card key={index}><CardHeader><div className="h-8 bg-gray-200 rounded w-3/4" /></CardHeader><CardContent><div className="h-12 bg-gray-200 rounded w-1/2" /><div className="h-6 bg-gray-200 rounded w-full mt-2" /></CardContent></Card>) :
+          isMobile ?
+          metrics.map((stat: any, index: number) => <MobileDashboardCard key={stat.title} stat={stat} index={index} />) :
           metrics.map((stat: any) => (
             <PerformanceCard
               key={stat.title}
@@ -196,28 +202,31 @@ export function DashboardPage({ onPageChange }: DashboardPageProps) {
       {/* Quick Actions */}
       <div className="mb-12">
         <h2 className="text-2xl font-semibold text-gray-800 mb-8">Quick Actions</h2>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {quickActions.map((action) => (
-            <QuickActionCard
-              key={action.title}
-              title={action.title}
-              description={action.description}
-              icon={action.icon}
-              color={action.color}
-              action={async () => {
-                // simulate API call
-                await new Promise(resolve => setTimeout(resolve, 1000))
-                if (action.action === 'ai-strategy' && userPlan !== 'Agency') {
-                  return false
-                }
-                onPageChange(action.action)
-                return true
-              }}
-              userPlan={userPlan}
-              requiredPlan={action.action === 'ai-strategy' ? 'Agency' : undefined}
-            />
-          ))}
-        </div>
+        {isMobile ?
+            <MobileQuickActions actions={quickActions} onActionClick={onPageChange} /> :
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {quickActions.map((action) => (
+                <QuickActionCard
+                key={action.title}
+                title={action.title}
+                description={action.description}
+                icon={action.icon}
+                color={action.color}
+                action={async () => {
+                    // simulate API call
+                    await new Promise(resolve => setTimeout(resolve, 1000))
+                    if (action.action === 'ai-strategy' && userPlan !== 'Agency') {
+                    return false
+                    }
+                    onPageChange(action.action)
+                    return true
+                }}
+                userPlan={userPlan}
+                requiredPlan={action.action === 'ai-strategy' ? 'Agency' : undefined}
+                />
+            ))}
+            </div>
+        }
       </div>
 
       {/* Main Content Grid */}

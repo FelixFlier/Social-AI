@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useMediaQuery } from "@/hooks/use-media-query"
+import MobileContentEditor from "./mobile-content-editor"
 import { useContentStore } from "@/lib/content-store"
 import SmartScheduler from "./smart-scheduler"
 import MediaUpload from "./media-upload"
@@ -73,6 +75,7 @@ export function ContentCreationPage() {
   const [activeTab, setActiveTab] = useState("instagram")
   const [isSaving, setIsSaving] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
+  const isMobile = useMediaQuery("(max-width: 768px)")
 
   const handleGenerate = async () => {
     await generateContent({ prompt: goal })
@@ -119,6 +122,10 @@ export function ContentCreationPage() {
     if (percentage < 70) return "text-success"
     if (percentage < 90) return "text-warning"
     return "text-destructive"
+  }
+
+  if (isMobile) {
+    return <MobileContentEditor />
   }
 
   return (
